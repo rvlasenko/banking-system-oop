@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from decimal import Decimal
 
 from .enums import AccountStatus, Currency
 
@@ -9,7 +8,7 @@ class AbstractAccount(ABC):
         self,
         owner: str,
         account_id: str,
-        balance: Decimal = Decimal("0.00"),
+        balance: int | float = 0.0,
         status: AccountStatus = AccountStatus.ACTIVE,
         currency: Currency = Currency.USD,
     ) -> None:
@@ -20,11 +19,11 @@ class AbstractAccount(ABC):
         self.currency = currency
 
     @abstractmethod
-    def deposit(self, amount: Decimal) -> None:
+    def deposit(self, amount: int | float) -> None:
         pass
 
     @abstractmethod
-    def withdraw(self, amount: Decimal) -> None:
+    def withdraw(self, amount: int | float) -> None:
         pass
 
     @abstractmethod

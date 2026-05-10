@@ -1,4 +1,3 @@
-from decimal import Decimal, InvalidOperation
 from uuid import uuid4
 
 from .abstract_account import AbstractAccount
@@ -16,7 +15,7 @@ class BankAccount(AbstractAccount):
         self,
         owner: str,
         account_id: str | None = None,
-        balance: int | float | Decimal = Decimal("0.00"),
+        balance: int | float = 0.0,
         status: AccountStatus = AccountStatus.ACTIVE,
         currency: Currency = Currency.USD,
     ) -> None:
@@ -63,22 +62,19 @@ class BankAccount(AbstractAccount):
 
         return clean_account_id
 
-    def _to_decimal(self, value: int | float | Decimal, field_name: str) -> Decimal:
-        if not isinstance(value, (int, float, Decimal)):
+    def _to_float(self, value: int | float, field_name: str) -> float:
+        if not isinstance(value, (int, float)):
             raise InvalidOperationError(f"{field_name} must be a number")
 
-        try:
-            return Decimal(str(value))
-        except InvalidOperation:
-            raise InvalidOperationError(f"{field_name} must be a valid number")
+        return float(value)
 
-    def _validate_balance(self, balance: int | float | Decimal) -> Decimal:
-        decimal_balance = self._to_decimal(balance, "Balance")
+    def _validate_balance(self, balance: int | float) -> float:
+        normalized_balance = self._to_float(balance, "Balance")
 
-        if decimal_balance < 0:
+        if normalized_balance < 0:
             raise InvalidOperationError("Balance must be greater than or equal to zero")
 
-        return decimal_balance
+        return normalized_balance
 
     @staticmethod
     def _validate_status(status: AccountStatus) -> AccountStatus:
@@ -94,13 +90,13 @@ class BankAccount(AbstractAccount):
 
         return currency
 
-    def _validate_amount(self, amount: int | float | Decimal) -> Decimal:
-        decimal_amount = self._to_decimal(amount, "Amount")
+    def _validate_amount(self, amount: int | float) -> float:
+        normalized_amount = self._to_float(amount, "Amount")
 
-        if decimal_amount <= 0:
+        if normalized_amount <= 0:
             raise InvalidOperationError("Amount must be greater than zero")
 
-        return decimal_amount
+        return normalized_amount
 
     def _check_account_status(self) -> None:
         if self.status == AccountStatus.FROZEN:
@@ -109,12 +105,12 @@ class BankAccount(AbstractAccount):
         if self.status == AccountStatus.CLOSED:
             raise AccountClosedError("Your account is closed")
 
-    def deposit(self, amount: int | float | Decimal) -> None:
+    def deposit(self, amount: int | float) -> None:
         amount = self._validate_amount(amount)
         self._check_account_status()
         self._balance += amount
 
-    def withdraw(self, amount: int | float | Decimal) -> None:
+    def withdraw(self, amount: int | float) -> None:
         amount = self._validate_amount(amount)
         self._check_account_status()
 
@@ -125,6 +121,7 @@ class BankAccount(AbstractAccount):
 
     def get_account_info(self) -> dict:
         return {
+            "account_type": type(self).__name__,
             "owner": self.owner,
             "account_id": self.account_id,
             "balance": self._balance,
