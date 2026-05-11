@@ -21,7 +21,7 @@ class BankAccount(AbstractAccount):
     ) -> None:
         owner = self._validate_owner(owner)
         account_id = self._validate_account_id(account_id)
-        balance = self._validate_balance(balance)
+        balance = self._validate_non_negative_number(balance, "Balance")
         status = self._validate_status(status)
         currency = self._validate_currency(currency)
 
@@ -46,7 +46,7 @@ class BankAccount(AbstractAccount):
 
     @staticmethod
     def _generate_account_id() -> str:
-        return str(uuid4())[:8]
+        return str(uuid4())[:8].upper()
 
     def _validate_account_id(self, account_id: str | None) -> str:
         if account_id is None:
@@ -63,18 +63,36 @@ class BankAccount(AbstractAccount):
         return clean_account_id
 
     def _to_float(self, value: int | float, field_name: str) -> float:
-        if not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise InvalidOperationError(f"{field_name} must be a number")
 
         return float(value)
 
-    def _validate_balance(self, balance: int | float) -> float:
-        normalized_balance = self._to_float(balance, "Balance")
+    def _validate_non_negative_number(
+        self,
+        value: int | float,
+        field_name: str,
+    ) -> float:
+        normalized_value = self._to_float(value, field_name)
 
-        if normalized_balance < 0:
-            raise InvalidOperationError("Balance must be greater than or equal to zero")
+        if normalized_value < 0:
+            raise InvalidOperationError(
+                f"{field_name} must be greater than or equal to zero"
+            )
 
-        return normalized_balance
+        return normalized_value
+
+    def _validate_positive_number(
+        self,
+        value: int | float,
+        field_name: str,
+    ) -> float:
+        normalized_value = self._to_float(value, field_name)
+
+        if normalized_value <= 0:
+            raise InvalidOperationError(f"{field_name} must be greater than zero")
+
+        return normalized_value
 
     @staticmethod
     def _validate_status(status: AccountStatus) -> AccountStatus:
@@ -90,14 +108,6 @@ class BankAccount(AbstractAccount):
 
         return currency
 
-    def _validate_amount(self, amount: int | float) -> float:
-        normalized_amount = self._to_float(amount, "Amount")
-
-        if normalized_amount <= 0:
-            raise InvalidOperationError("Amount must be greater than zero")
-
-        return normalized_amount
-
     def _check_account_status(self) -> None:
         if self.status == AccountStatus.FROZEN:
             raise AccountFrozenError("Your account is frozen")
@@ -106,12 +116,12 @@ class BankAccount(AbstractAccount):
             raise AccountClosedError("Your account is closed")
 
     def deposit(self, amount: int | float) -> None:
-        amount = self._validate_amount(amount)
+        amount = self._validate_positive_number(amount, "Amount")
         self._check_account_status()
         self._balance += amount
 
     def withdraw(self, amount: int | float) -> None:
-        amount = self._validate_amount(amount)
+        amount = self._validate_positive_number(amount, "Amount")
         self._check_account_status()
 
         if amount > self._balance:
