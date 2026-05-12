@@ -1,90 +1,95 @@
+from src.banking_system.bank.bank import Bank
+from src.banking_system.clients.client import Client
+from src.banking_system.accounts.bank_account import BankAccount
 from src.banking_system.accounts.savings_account import SavingsAccount
 from src.banking_system.accounts.premium_account import PremiumAccount
-from src.banking_system.accounts.investment_account import InvestmentAccount
 from src.banking_system.accounts.enums import AccountStatus
-from src.banking_system.exceptions.account_exceptions import (
-    AccountFrozenError,
-    InsufficientFundsError,
-    InvalidOperationError,
-)
+from src.banking_system.exceptions.bank_exceptions import InvalidOperationError
+
+
+def print_accounts(accounts):
+    for account in accounts:
+        print(account)
 
 
 def main() -> None:
-    savings = SavingsAccount(
-        owner="Roman",
-        balance=1_000,
-        min_balance=200,
+    bank = Bank()
+
+    roman = Client(
+        full_name="Roman Vlasenko",
+        age=29,
+        pin_code="1234",
+        contacts={"email": "roman@example.com"},
+    )
+
+    anna = Client(
+        full_name="Anna Smith",
+        age=34,
+        pin_code="5555",
+        contacts={"email": "anna@example.com"},
+    )
+
+    bank.add_client(roman)
+    bank.add_client(anna)
+
+    roman_main = BankAccount(owner=roman.full_name, balance=1_000)
+    roman_savings = SavingsAccount(
+        owner=roman.full_name,
+        balance=2_000,
+        min_balance=500,
         monthly_interest_rate=5,
     )
 
-    premium = PremiumAccount(
-        owner="Anna",
-        balance=100,
+    anna_premium = PremiumAccount(
+        owner=anna.full_name,
+        balance=300,
         overdraft_limit=500,
         withdraw_limit=1_000,
         fixed_fee=10,
     )
 
-    investment = InvestmentAccount(
-        owner="Ivan",
-        balance=700,
-        portfolio={
-            "stocks": 1_000,
-            "bonds": 500,
-            "etf": 700,
-        },
-    )
+    bank.open_account(roman.client_id, roman_main)
+    bank.open_account(roman.client_id, roman_savings)
+    bank.open_account(anna.client_id, anna_premium)
 
-    frozen_savings = SavingsAccount(
-        owner="Frozen Client",
-        balance=500,
-        status=AccountStatus.FROZEN,
-        min_balance=100,
-        monthly_interest_rate=3,
-    )
+    print("\n--- All accounts ---")
+    print_accounts(bank.search_accounts())
 
-    print("\n--- Initial accounts ---")
-    print(savings)
-    print(premium)
-    print(investment)
-    print(frozen_savings)
+    print("\n--- Roman accounts ---")
+    print_accounts(bank.search_accounts(client_id=roman.client_id))
 
-    print("\n--- Savings account ---")
-    savings.deposit(300)
-    print("After deposit:", savings)
+    print("\n--- Anna accounts ---")
+    print_accounts(bank.search_accounts(client_id=anna.client_id))
 
-    savings.withdraw(500)
-    print("After withdraw:", savings)
+    print("\n--- Freeze account ---")
+    bank.freeze_account(roman_main.account_id)
+    print_accounts(bank.search_accounts(status=AccountStatus.FROZEN))
 
-    savings.apply_monthly_interest()
-    print("After monthly interest:", savings)
+    print("\n--- Authentication attempts ---")
+    print("Wrong PIN #1:", bank.authenticate_client(anna.client_id, "0000"))
+    print("Wrong PIN #2:", bank.authenticate_client(anna.client_id, "1111"))
+    print("Anna suspicious:", anna.is_suspicious)
+    print("Wrong PIN #3:", bank.authenticate_client(anna.client_id, "2222"))
+    print("Anna status:", anna.status.value)
 
     try:
-        savings.withdraw(2_000)
-    except InsufficientFundsError as error:
-        print("Savings error:", error)
+        bank.authenticate_client(anna.client_id, "5555")
+    except InvalidOperationError as error:
+        print("Blocked auth error:", error)
 
-    print("\n--- Premium account ---")
-    premium.withdraw(300)
-    print("After premium withdraw with fee and overdraft:", premium)
+    print("\n--- Total bank balance ---")
+    print(bank.get_total_balance())
+
+    print("\n--- Clients ranking ---")
+    print(bank.get_clients_ranking())
+
+    print("\n--- Close and unfreeze check ---")
+    bank.close_account(roman_main.account_id)
 
     try:
-        premium.withdraw(2_000)
-    except (InvalidOperationError, InsufficientFundsError) as error:
-        print("Premium error:", error)
-
-    print("\n--- Investment account ---")
-    print("Current info:", investment.get_account_info())
-    print("Projected yearly growth:", investment.project_yearly_growth())
-
-    investment.withdraw(200)
-    print("After withdraw:", investment)
-
-    print("\n--- Frozen account ---")
-    try:
-        frozen_savings.deposit(100)
-    except AccountFrozenError as error:
-        print("Frozen account error:", error)
+        bank.unfreeze_account(roman_main.account_id)
+    except InvalidOperationError as error:
+        print("Unfreeze error:", error)
 
 
 if __name__ == "__main__":

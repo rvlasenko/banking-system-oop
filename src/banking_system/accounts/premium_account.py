@@ -35,6 +35,18 @@ class PremiumAccount(BankAccount):
         self.withdraw_limit = withdraw_limit
         self.fixed_fee = fixed_fee
 
+    def __str__(self) -> str:
+        return (
+            f"{type(self).__name__} | "
+            f"{self.owner} | "
+            f"****{self.account_id[-4:]} | "
+            f"{self.status.value} | "
+            f"{self._balance} {self.currency.value} | "
+            f"Overdraft limit: {self.overdraft_limit} | "
+            f"Withdraw limit: {self.withdraw_limit} | "
+            f"Fixed fee: {self.fixed_fee}"
+        )
+
     def withdraw(self, amount: int | float) -> None:
         amount = self._validate_positive_number(amount, "Amount")
         self._check_account_status()
@@ -61,15 +73,3 @@ class PremiumAccount(BankAccount):
         )
 
         return parent_info
-
-    def __str__(self) -> str:
-        return (
-            f"{type(self).__name__} | "
-            f"{self.owner} | "
-            f"****{self.account_id[-4:]} | "
-            f"{self.status.value} | "
-            f"{self._balance} {self.currency.value} | "
-            f"Overdraft limit: {self.overdraft_limit} | "
-            f"Withdraw limit: {self.withdraw_limit} | "
-            f"Fixed fee: {self.fixed_fee}"
-        )

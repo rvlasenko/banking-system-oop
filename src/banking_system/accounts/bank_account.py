@@ -33,6 +33,39 @@ class BankAccount(AbstractAccount):
             currency=currency,
         )
 
+    def __str__(self) -> str:
+        return (
+            f"{type(self).__name__} | "
+            f"{self.owner} | "
+            f"****{self.account_id[-4:]} | "
+            f"{self.status.value} | "
+            f"{self._balance} {self.currency.value}"
+        )
+
+    def deposit(self, amount: int | float) -> None:
+        amount = self._validate_positive_number(amount, "Amount")
+        self._check_account_status()
+        self._balance += amount
+
+    def withdraw(self, amount: int | float) -> None:
+        amount = self._validate_positive_number(amount, "Amount")
+        self._check_account_status()
+
+        if amount > self._balance:
+            raise InsufficientFundsError("Insufficient funds for this withdrawal")
+
+        self._balance -= amount
+
+    def get_account_info(self) -> dict:
+        return {
+            "account_type": type(self).__name__,
+            "owner": self.owner,
+            "account_id": self.account_id,
+            "balance": self._balance,
+            "status": self.status.value,
+            "currency": self.currency.value,
+        }
+
     def _validate_owner(self, owner: str) -> str:
         if not isinstance(owner, str):
             raise InvalidOperationError("Owner must be a string")
@@ -114,36 +147,3 @@ class BankAccount(AbstractAccount):
 
         if self.status == AccountStatus.CLOSED:
             raise AccountClosedError("Your account is closed")
-
-    def deposit(self, amount: int | float) -> None:
-        amount = self._validate_positive_number(amount, "Amount")
-        self._check_account_status()
-        self._balance += amount
-
-    def withdraw(self, amount: int | float) -> None:
-        amount = self._validate_positive_number(amount, "Amount")
-        self._check_account_status()
-
-        if amount > self._balance:
-            raise InsufficientFundsError("Insufficient funds for this withdrawal")
-
-        self._balance -= amount
-
-    def get_account_info(self) -> dict:
-        return {
-            "account_type": type(self).__name__,
-            "owner": self.owner,
-            "account_id": self.account_id,
-            "balance": self._balance,
-            "status": self.status.value,
-            "currency": self.currency.value,
-        }
-
-    def __str__(self) -> str:
-        return (
-            f"{type(self).__name__} | "
-            f"{self.owner} | "
-            f"****{self.account_id[-4:]} | "
-            f"{self.status.value} | "
-            f"{self._balance} {self.currency.value}"
-        )

@@ -26,24 +26,17 @@ class InvestmentAccount(BankAccount):
 
         self.portfolio = self._validate_portfolio(portfolio)
 
-    def _validate_portfolio(
-        self, portfolio: dict[str, int | float] | None
-    ) -> dict[str, int | float]:
-        allowed_assets = {"stocks", "bonds", "etf"}
-        validated_portfolio = {}
+    def __str__(self) -> str:
+        portfolio_value = sum(self.portfolio.values())
 
-        if portfolio is None:
-            return validated_portfolio
-
-        for key, value in portfolio.items():
-            if key not in allowed_assets:
-                raise InvalidOperationError(f"Unsupported asset type: {key}")
-
-            validated_value = self._validate_non_negative_number(value, key)
-
-            validated_portfolio[key] = validated_value
-
-        return validated_portfolio
+        return (
+            f"{type(self).__name__} | "
+            f"{self.owner} | "
+            f"****{self.account_id[-4:]} | "
+            f"{self.status.value} | "
+            f"{self._balance} {self.currency.value} | "
+            f"Portfolio value: {portfolio_value}"
+        )
 
     def project_yearly_growth(self) -> dict[str, float]:
         growth_rates = {
@@ -80,14 +73,21 @@ class InvestmentAccount(BankAccount):
 
         return parent_info
 
-    def __str__(self) -> str:
-        portfolio_value = sum(self.portfolio.values())
+    def _validate_portfolio(
+        self, portfolio: dict[str, int | float] | None
+    ) -> dict[str, int | float]:
+        allowed_assets = {"stocks", "bonds", "etf"}
+        validated_portfolio = {}
 
-        return (
-            f"{type(self).__name__} | "
-            f"{self.owner} | "
-            f"****{self.account_id[-4:]} | "
-            f"{self.status.value} | "
-            f"{self._balance} {self.currency.value} | "
-            f"Portfolio value: {portfolio_value}"
-        )
+        if portfolio is None:
+            return validated_portfolio
+
+        for key, value in portfolio.items():
+            if key not in allowed_assets:
+                raise InvalidOperationError(f"Unsupported asset type: {key}")
+
+            validated_value = self._validate_non_negative_number(value, key)
+
+            validated_portfolio[key] = validated_value
+
+        return validated_portfolio
