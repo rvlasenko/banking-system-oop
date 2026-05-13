@@ -4,7 +4,7 @@ from ..clients.client import Client
 from ..clients.enums import ClientStatus
 from ..accounts.enums import AccountStatus
 from ..accounts.bank_account import BankAccount
-from ..exceptions.bank_exceptions import InvalidOperationError
+from ..exceptions.invalid_operation import InvalidOperationError
 
 
 class Bank:
@@ -16,20 +16,16 @@ class Bank:
         if not isinstance(client, Client):
             raise InvalidOperationError("Client must be an instance of Client")
 
-        if self._is_night_time():
-            raise InvalidOperationError("Bank operations are not allowed at night")
-
         if client.client_id in self.clients:
             raise InvalidOperationError("Client already exists")
 
         self.clients[client.client_id] = client
 
     def open_account(self, client_id: str, account: BankAccount) -> None:
+        self._ensure_operations_allowed()
+
         if not isinstance(account, BankAccount):
             raise InvalidOperationError("Account must be an instance of BankAccount")
-
-        if self._is_night_time():
-            raise InvalidOperationError("Bank operations are not allowed at night")
 
         if client_id not in self.clients:
             raise InvalidOperationError("Client doesn't exist")
@@ -46,22 +42,16 @@ class Bank:
         client.account_ids.append(account.account_id)
 
     def close_account(self, account_id: str) -> None:
-        if self._is_night_time():
-            raise InvalidOperationError("Bank operations are not allowed at night")
-
+        self._ensure_operations_allowed()
         self._change_account_status(account_id, AccountStatus.CLOSED)
 
     def freeze_account(self, account_id: str) -> None:
-        if self._is_night_time():
-            raise InvalidOperationError("Bank operations are not allowed at night")
-
+        self._ensure_operations_allowed()
         self._change_account_status(account_id, AccountStatus.FROZEN)
 
     def unfreeze_account(self, account_id: str) -> None:
-        account = self.accounts[account_id]
-
-        if self._is_night_time():
-            raise InvalidOperationError("Bank operations are not allowed at night")
+        self._ensure_operations_allowed()
+        account = self._get_account(account_id)
 
         if account.status == AccountStatus.CLOSED:
             raise InvalidOperationError("Closed account cannot be unfrozen")
@@ -69,11 +59,10 @@ class Bank:
         self._change_account_status(account_id, AccountStatus.ACTIVE)
 
     def authenticate_client(self, client_id: str, pin_code: str) -> bool:
+        self._ensure_operations_allowed()
+
         if client_id not in self.clients:
             raise InvalidOperationError("Client doesn't exist")
-
-        if self._is_night_time():
-            raise InvalidOperationError("Bank operations are not allowed at night")
 
         client = self.clients[client_id]
 
@@ -121,7 +110,7 @@ class Bank:
         return accounts
 
     def get_total_balance(self) -> float:
-        return sum([account._balance for account in self.accounts.values()])
+        return sum(account._balance for account in self.accounts.values())
 
     def get_clients_ranking(self) -> list[tuple[str, float]]:
         clients = {}
@@ -130,7 +119,7 @@ class Bank:
             total_balance = 0
 
             for account_id in client.account_ids:
-                account = self.accounts[account_id]
+                account = self._get_account(account_id)
                 total_balance += account._balance
 
             clients[client.full_name] = total_balance
@@ -141,13 +130,20 @@ class Bank:
             reverse=True,
         )
 
+    def _ensure_operations_allowed(self) -> None:
+        if self._is_night_time():
+            raise InvalidOperationError("Bank operations are not allowed at night")
+
     def _is_night_time(self) -> bool:
         current_hour = datetime.now().hour
         return current_hour >= 0 and current_hour < 5
 
-    def _change_account_status(self, account_id: str, status: AccountStatus) -> None:
+    def _get_account(self, account_id: str) -> BankAccount:
         if account_id not in self.accounts:
             raise InvalidOperationError("Account doesn't exist")
 
-        account = self.accounts[account_id]
+        return self.accounts[account_id]
+
+    def _change_account_status(self, account_id: str, status: AccountStatus) -> None:
+        account = self._get_account(account_id)
         account.status = status

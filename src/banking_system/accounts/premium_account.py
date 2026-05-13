@@ -1,6 +1,6 @@
 from .bank_account import BankAccount
 from .enums import AccountStatus, Currency
-from ..exceptions.account_exceptions import InvalidOperationError
+from ..exceptions.invalid_operation import InvalidOperationError
 
 
 class PremiumAccount(BankAccount):

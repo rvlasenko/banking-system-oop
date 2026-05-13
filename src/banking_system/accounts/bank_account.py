@@ -3,11 +3,11 @@ from uuid import uuid4
 from .abstract_account import AbstractAccount
 from .enums import AccountStatus, Currency
 from ..exceptions.account_exceptions import (
-    InvalidOperationError,
     AccountClosedError,
     AccountFrozenError,
     InsufficientFundsError,
 )
+from ..exceptions.invalid_operation import InvalidOperationError
 
 
 class BankAccount(AbstractAccount):

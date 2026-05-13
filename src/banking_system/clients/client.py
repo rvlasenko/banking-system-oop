@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from .enums import ClientStatus
-from ..exceptions.client_exceptions import InvalidOperationError
+from ..exceptions.invalid_operation import InvalidOperationError
 
 
 class Client:
