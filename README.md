@@ -43,6 +43,15 @@ The project demonstrates:
 - simple currency conversion
 - failed transaction tracking
 
+### Audit and Risk Analysis
+- audit logging
+- log filtering
+- save audit logs to file
+- transaction risk analysis
+- suspicious transaction detection
+- client risk profiles
+- error statistics
+
 ## Project Structure
 
 ```text
@@ -79,8 +88,4 @@ Then select a demo from the menu.
 - Day 2 — Advanced account types
 - Day 3 — Bank system and security
 - Day 4 — Transactions, queue and processing
-
-Additional functionality may be added in future iterations:
-- audit logging
-- risk analysis
-- reporting and visualization
+- Day 5 — Audit and risk analysis

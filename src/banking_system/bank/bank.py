@@ -113,8 +113,8 @@ class Bank:
         # generator expression
         return sum(account._balance for account in self.accounts.values())
 
-    def get_clients_ranking(self) -> list[tuple[str, float]]:
-        clients = {}
+    def get_clients_ranking(self) -> list[dict]:
+        ranking = []
 
         for client in self.clients.values():
             total_balance = 0
@@ -123,11 +123,17 @@ class Bank:
                 account = self._get_account(account_id)
                 total_balance += account._balance
 
-            clients[client.full_name] = total_balance
+            ranking.append(
+                {
+                    "client_id": client.client_id,
+                    "full_name": client.full_name,
+                    "total_balance": total_balance,
+                }
+            )
 
         return sorted(
-            clients.items(),
-            key=lambda item: item[1],
+            ranking,
+            key=lambda item: item["total_balance"],
             reverse=True,
         )
 

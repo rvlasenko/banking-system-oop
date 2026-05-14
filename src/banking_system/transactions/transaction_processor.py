@@ -1,6 +1,9 @@
 from datetime import datetime
 
 from ..accounts.bank_account import BankAccount
+from ..audit.audit_log import AuditLog
+from ..audit.risk_analyzer import RiskAnalyzer
+from ..audit.enums import RiskLevel, AuditLevel
 from ..bank.bank import Bank
 from ..exceptions.account_exceptions import (
     AccountClosedError,
@@ -14,11 +17,26 @@ from .transaction_queue import TransactionQueue
 
 
 class TransactionProcessor:
-    def __init__(self, bank: Bank) -> None:
+    def __init__(
+        self,
+        bank: Bank,
+        audit_log: AuditLog,
+        risk_analyzer: RiskAnalyzer,
+    ) -> None:
         if not isinstance(bank, Bank):
             raise InvalidOperationError("Bank must be an instance of Bank")
 
+        if not isinstance(audit_log, AuditLog):
+            raise InvalidOperationError("Audit log must be an instance of AuditLog")
+
+        if not isinstance(risk_analyzer, RiskAnalyzer):
+            raise InvalidOperationError(
+                "Risk analyzer must be an instance of RiskAnalyzer"
+            )
+
         self.bank = bank
+        self.audit_log = audit_log
+        self.risk_analyzer = risk_analyzer
 
     def process_transaction(self, transaction: Transaction) -> None:
         if not isinstance(transaction, Transaction):
@@ -28,6 +46,29 @@ class TransactionProcessor:
 
         if transaction.status != TransactionStatus.PENDING:
             raise InvalidOperationError("Only pending transactions can be processed")
+
+        risk_level = self.risk_analyzer.analyze_transaction(transaction)
+
+        if risk_level == RiskLevel.HIGH:
+            transaction.status = TransactionStatus.FAILED
+            transaction.failure_reason = "Transaction blocked by risk analyzer"
+            transaction.processed_at = datetime.now()
+            transaction.retry_count += 1
+            self.audit_log.log(
+                level=AuditLevel.CRITICAL,
+                message="Transaction blocked by risk analyzer",
+                transaction_id=transaction.transaction_id,
+                client_id=self._get_client_id_for_transaction(transaction),
+            )
+            return
+
+        if risk_level == RiskLevel.MEDIUM:
+            self.audit_log.log(
+                level=AuditLevel.WARNING,
+                message="Medium risk transaction detected",
+                transaction_id=transaction.transaction_id,
+                client_id=self._get_client_id_for_transaction(transaction),
+            )
 
         transaction.status = TransactionStatus.PROCESSING
         transaction.fee = self._calculate_fee(transaction)
@@ -45,6 +86,13 @@ class TransactionProcessor:
             transaction.status = TransactionStatus.COMPLETED
             transaction.processed_at = datetime.now()
 
+            self.audit_log.log(
+                level=AuditLevel.INFO,
+                message="Transaction completed",
+                transaction_id=transaction.transaction_id,
+                client_id=self._get_client_id_for_transaction(transaction),
+            )
+
         except (
             InvalidOperationError,
             InsufficientFundsError,
@@ -55,6 +103,13 @@ class TransactionProcessor:
             transaction.failure_reason = str(error)
             transaction.retry_count += 1
             transaction.processed_at = datetime.now()
+
+            self.audit_log.log(
+                level=AuditLevel.ERROR,
+                message=str(error),
+                transaction_id=transaction.transaction_id,
+                client_id=self._get_client_id_for_transaction(transaction),
+            )
 
     def process_queue(self, queue: TransactionQueue) -> None:
         if not isinstance(queue, TransactionQueue):
@@ -68,6 +123,18 @@ class TransactionProcessor:
 
             self.process_transaction(transaction)
             queue.remove_transaction(transaction.transaction_id)
+
+    def _get_client_id_for_transaction(self, transaction: Transaction) -> str | None:
+        account_id = transaction.sender_account_id or transaction.receiver_account_id
+
+        if account_id is None:
+            return None
+
+        for client in self.bank.clients.values():
+            if account_id in client.account_ids:
+                return client.client_id
+
+        return None
 
     def _convert_amount(
         self,
