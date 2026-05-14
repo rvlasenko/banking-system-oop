@@ -110,6 +110,7 @@ class Bank:
         return accounts
 
     def get_total_balance(self) -> float:
+        # generator expression
         return sum(account._balance for account in self.accounts.values())
 
     def get_clients_ranking(self) -> list[tuple[str, float]]:

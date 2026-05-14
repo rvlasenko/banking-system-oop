@@ -32,6 +32,17 @@ The project demonstrates:
 - total balance calculation
 - night operation restrictions
 
+### Transactions
+- transaction model
+- transaction queue
+- priority handling
+- delayed transactions
+- transaction cancellation
+- transaction processor
+- fees for transfers
+- simple currency conversion
+- failed transaction tracking
+
 ## Project Structure
 
 ```text
@@ -67,9 +78,9 @@ Then select a demo from the menu.
 - Day 1 — Basic bank accounts
 - Day 2 — Advanced account types
 - Day 3 — Bank system and security
+- Day 4 — Transactions, queue and processing
 
 Additional functionality may be added in future iterations:
-- transaction processing
 - audit logging
 - risk analysis
 - reporting and visualization
