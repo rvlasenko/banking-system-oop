@@ -52,6 +52,16 @@ The project demonstrates:
 - client risk profiles
 - error statistics
 
+### Full System Simulation
+- demo setup with 7 clients
+- 14 bank accounts
+- 30+ simulated transactions
+- successful, failed, cancelled and delayed transactions
+- user scenarios
+- transaction history overview
+- suspicious activity overview
+- final summary reports
+
 ## Project Structure
 
 ```text
@@ -89,3 +99,4 @@ Then select a demo from the menu.
 - Day 3 — Bank system and security
 - Day 4 — Transactions, queue and processing
 - Day 5 — Audit and risk analysis
+- Day 6 — Full banking system simulation
