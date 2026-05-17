@@ -62,6 +62,17 @@ The project demonstrates:
 - suspicious activity overview
 - final summary reports
 
+### Reporting and Visualization
+- bank reports
+- client reports
+- risk reports
+- text report generation
+- JSON export
+- CSV export
+- pie charts for transaction statuses
+- bar charts for top clients
+- line charts for client balance movement
+
 ## Project Structure
 
 ```text
@@ -81,6 +92,7 @@ The project demonstrates:
 ## Requirements
 
 - Python 3.11+
+- matplotlib
 
 ## Run Project
 
@@ -100,3 +112,4 @@ Then select a demo from the menu.
 - Day 4 — Transactions, queue and processing
 - Day 5 — Audit and risk analysis
 - Day 6 — Full banking system simulation
+- Day 7 — Reports and visualization

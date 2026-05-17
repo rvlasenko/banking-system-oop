@@ -4,6 +4,7 @@ from src.banking_system.demo.day3_demo import run_day3_demo
 from src.banking_system.demo.day4_demo import run_day4_demo
 from src.banking_system.demo.day5_demo import run_day5_demo
 from src.banking_system.demo.day6_demo import run_day6_demo
+from src.banking_system.demo.day7_demo import run_day7_demo
 
 
 DEMOS = {
@@ -13,6 +14,7 @@ DEMOS = {
     "4": ("Day 4: Transactions and Queue", run_day4_demo),
     "5": ("Day 5: Audit and Risk Analysis", run_day5_demo),
     "6": ("Day 6: Full System Demo", run_day6_demo),
+    "7": ("Day 7: Reports and Visualization", run_day7_demo),
 }
 
 
