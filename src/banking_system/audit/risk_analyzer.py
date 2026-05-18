@@ -63,7 +63,9 @@ class RiskAnalyzer:
         recent_transactions = [
             trans
             for trans in history
-            if transaction.created_at - trans.created_at <= timedelta(minutes=1)
+            if timedelta(0)
+            <= transaction.created_at - trans.created_at
+            <= timedelta(minutes=1)
         ]
 
         return len(recent_transactions) >= 5

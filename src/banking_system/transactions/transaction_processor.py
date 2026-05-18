@@ -22,6 +22,7 @@ class TransactionProcessor:
         bank: Bank,
         audit_log: AuditLog,
         risk_analyzer: RiskAnalyzer,
+        max_retries: int = 3,
     ) -> None:
         if not isinstance(bank, Bank):
             raise InvalidOperationError("Bank must be an instance of Bank")
@@ -37,6 +38,7 @@ class TransactionProcessor:
         self.bank = bank
         self.audit_log = audit_log
         self.risk_analyzer = risk_analyzer
+        self.max_retries = max_retries
 
     def process_transaction(self, transaction: Transaction) -> None:
         if not isinstance(transaction, Transaction):
@@ -112,6 +114,8 @@ class TransactionProcessor:
             )
 
     def process_queue(self, queue: TransactionQueue) -> None:
+        # current implementation has only non-retryable failures\n
+        # retry logic is kept for future temporary errors
         if not isinstance(queue, TransactionQueue):
             raise InvalidOperationError("Queue must be an instance of TransactionQueue")
 
@@ -122,7 +126,26 @@ class TransactionProcessor:
                 break
 
             self.process_transaction(transaction)
-            queue.remove_transaction(transaction.transaction_id)
+
+            if transaction.status == TransactionStatus.COMPLETED:
+                print(f"[SUCCESS] {transaction.transaction_id}")
+                queue.remove_transaction(transaction.transaction_id)
+
+            elif transaction.status == TransactionStatus.FAILED:
+                if self._is_retryable_failure(transaction):
+                    if transaction.retry_count < self.max_retries:
+                        print(f"[RETRY] {transaction.transaction_id}")
+                        transaction.status = TransactionStatus.PENDING
+                    else:
+                        print(f"[FAILED] {transaction.transaction_id}")
+                        queue.remove_transaction(transaction.transaction_id)
+                else:
+                    print(f"[FAILED] {transaction.transaction_id}")
+                    queue.remove_transaction(transaction.transaction_id)
+
+    def _is_retryable_failure(self, transaction: Transaction) -> bool:
+        # future extension point for temporary failures
+        return False
 
     def _get_client_id_for_transaction(self, transaction: Transaction) -> str | None:
         account_id = transaction.sender_account_id or transaction.receiver_account_id

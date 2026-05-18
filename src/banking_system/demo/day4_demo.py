@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
 
 from ..accounts.bank_account import BankAccount
-from ..accounts.premium_account import PremiumAccount
 from ..accounts.enums import AccountStatus, Currency
+from ..accounts.premium_account import PremiumAccount
+from ..audit.audit_log import AuditLog
+from ..audit.risk_analyzer import RiskAnalyzer
 from ..bank.bank import Bank
 from ..clients.client import Client
 from ..transactions.enums import (
@@ -31,7 +33,14 @@ def run_day4_demo() -> None:
 
     bank = Bank()
     queue = TransactionQueue()
-    processor = TransactionProcessor(bank)
+    audit_log = AuditLog()
+    risk_analyzer = RiskAnalyzer()
+
+    processor = TransactionProcessor(
+        bank=bank,
+        audit_log=audit_log,
+        risk_analyzer=risk_analyzer,
+    )
 
     roman = Client("Roman Vlasenko", age=29, pin_code="1234")
     anna = Client("Anna Smith", age=34, pin_code="5555")
