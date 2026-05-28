@@ -5,6 +5,7 @@ from ..audit.audit_log import AuditLog
 from ..audit.risk_analyzer import RiskAnalyzer
 from ..audit.enums import RiskLevel, AuditLevel
 from ..bank.bank import Bank
+from ..config import EXCHANGE_RATES, TRANSFER_FEE_RATE
 from ..exceptions.account_exceptions import (
     AccountClosedError,
     AccountFrozenError,
@@ -168,18 +169,7 @@ class TransactionProcessor:
         if from_currency == to_currency:
             return amount
 
-        exchange_rates = {
-            ("USD", "EUR"): 0.92,
-            ("EUR", "USD"): 1.08,
-            ("USD", "RUB"): 90.0,
-            ("RUB", "USD"): 0.011,
-            ("USD", "KZT"): 450.0,
-            ("KZT", "USD"): 0.0022,
-            ("EUR", "RUB"): 98.0,
-            ("RUB", "EUR"): 0.010,
-        }
-
-        rate = exchange_rates.get((from_currency.value, to_currency.value))
+        rate = EXCHANGE_RATES.get((from_currency.value, to_currency.value))
 
         if rate is None:
             raise InvalidOperationError(
@@ -235,6 +225,6 @@ class TransactionProcessor:
 
     def _calculate_fee(self, transaction: Transaction) -> float:
         if transaction.transaction_type == TransactionType.TRANSFER:
-            return transaction.amount * 0.01
+            return transaction.amount * TRANSFER_FEE_RATE
 
         return 0.0

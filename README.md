@@ -1,6 +1,6 @@
 # Banking System
 
-OOP banking system written in Python.
+OOP banking system written in Python 3.11+.
 
 The project demonstrates:
 - abstract classes
@@ -9,7 +9,9 @@ The project demonstrates:
 - client management
 - authentication and security checks
 - account status handling
-- transaction-related architecture preparation
+- transaction processing with queues and priorities
+- audit logging and risk analysis
+- reporting and visualization
 
 ## Features
 
@@ -80,13 +82,23 @@ The project demonstrates:
 ├── main.py
 ├── README.md
 ├── requirements.txt
+├── tests/
+├── logs/
+│   └── audit.log
+├── reports/
+│   ├── charts/      (PNG visualizations)
+│   ├── csv/         (CSV exports)
+│   └── json/        (JSON exports)
 └── src/
     └── banking_system/
         ├── accounts/
+        ├── audit/
         ├── bank/
         ├── clients/
         ├── demo/
-        └── exceptions/
+        ├── exceptions/
+        ├── reports/
+        └── transactions/
 ```
 
 ## Requirements
@@ -94,7 +106,15 @@ The project demonstrates:
 - Python 3.11+
 - matplotlib
 
-## Run Project
+## Setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Run
 
 From the project root:
 
@@ -104,12 +124,18 @@ PYTHONPATH=src python main.py
 
 Then select a demo from the menu.
 
+## Tests
+
+```bash
+PYTHONPATH=src python -m pytest tests/ -v
+```
+
 ## Demo Days
 
-- Day 1 — Basic bank accounts
-- Day 2 — Advanced account types
-- Day 3 — Bank system and security
-- Day 4 — Transactions, queue and processing
-- Day 5 — Audit and risk analysis
-- Day 6 — Full banking system simulation
-- Day 7 — Reports and visualization
+- Day 1 — Basic bank accounts: deposit, withdraw, balance, status
+- Day 2 — Advanced account types: savings interest, premium overdraft, investment portfolio
+- Day 3 — Bank system and security: client registration, PIN auth, account lifecycle
+- Day 4 — Transactions, queue and processing: priorities, delays, fees, currency conversion
+- Day 5 — Audit and risk analysis: log levels, risk scoring, suspicious activity detection
+- Day 6 — Full banking system simulation: 7 clients, 14 accounts, 30+ transactions end-to-end
+- Day 7 — Reports and visualization: text reports, JSON/CSV export, pie/bar/line charts

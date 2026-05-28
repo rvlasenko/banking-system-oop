@@ -1,5 +1,13 @@
 from datetime import timedelta
 
+from ..config import (
+    NIGHT_HOUR_END,
+    NIGHT_HOUR_START,
+    RISK_FREQUENT_LIMIT,
+    RISK_FREQUENT_WINDOW,
+    RISK_HIGH_AMOUNT,
+    RISK_MEDIUM_AMOUNT,
+)
 from ..transactions.enums import TransactionType
 from .enums import RiskLevel
 from ..transactions.transaction import Transaction
@@ -19,10 +27,10 @@ class RiskAnalyzer:
 
         risk_level = RiskLevel.LOW
 
-        if transaction.amount >= 10_000:
+        if transaction.amount >= RISK_HIGH_AMOUNT:
             risk_level = RiskLevel.HIGH
 
-        elif transaction.amount >= 5000:
+        elif transaction.amount >= RISK_MEDIUM_AMOUNT:
             risk_level = RiskLevel.MEDIUM
 
         elif self._is_night_transaction(transaction):
@@ -49,7 +57,7 @@ class RiskAnalyzer:
 
     def _is_night_transaction(self, transaction: Transaction) -> bool:
         transaction_hour = transaction.created_at.hour
-        return transaction_hour >= 0 and transaction_hour < 5
+        return NIGHT_HOUR_START <= transaction_hour < NIGHT_HOUR_END
 
     def _is_frequent_transactions(
         self,
@@ -65,10 +73,10 @@ class RiskAnalyzer:
             for trans in history
             if timedelta(0)
             <= transaction.created_at - trans.created_at
-            <= timedelta(minutes=1)
+            <= RISK_FREQUENT_WINDOW
         ]
 
-        return len(recent_transactions) >= 5
+        return len(recent_transactions) >= RISK_FREQUENT_LIMIT
 
     def _save_receiver(self, transaction: Transaction) -> None:
         if transaction.sender_account_id is None:

@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from ..config import MAX_FAILED_LOGIN_ATTEMPTS, NIGHT_HOUR_END, NIGHT_HOUR_START, SUSPICIOUS_LOGIN_ATTEMPTS
 from ..clients.client import Client
 from ..clients.enums import ClientStatus
 from ..accounts.enums import AccountStatus
@@ -72,10 +73,10 @@ class Bank:
         if pin_code != client.pin_code:
             client.failed_login_attempts += 1
 
-            if client.failed_login_attempts >= 2:
+            if client.failed_login_attempts >= SUSPICIOUS_LOGIN_ATTEMPTS:
                 client.is_suspicious = True
 
-            if client.failed_login_attempts >= 3:
+            if client.failed_login_attempts >= MAX_FAILED_LOGIN_ATTEMPTS:
                 client.status = ClientStatus.BLOCKED
                 return False
 
@@ -143,7 +144,7 @@ class Bank:
 
     def _is_night_time(self) -> bool:
         current_hour = datetime.now().hour
-        return current_hour >= 0 and current_hour < 5
+        return NIGHT_HOUR_START <= current_hour < NIGHT_HOUR_END
 
     def _get_account(self, account_id: str) -> BankAccount:
         if account_id not in self.accounts:
